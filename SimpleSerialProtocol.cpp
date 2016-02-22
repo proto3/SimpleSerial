@@ -36,7 +36,7 @@ bool SimpleSerialProtocol::has_data()
     return data_counter == 5;
 }
 //----------------------------------------------------------------------------//
-int SimpleSerialProtocol::get_data()
+uint32_t SimpleSerialProtocol::get_data()
 {
     return data32;
 }
@@ -98,11 +98,12 @@ void SimpleSerialProtocol::reset_data()
 void SimpleSerialProtocol::append_data(uint8_t byte)
 {
     int shift = (24-(8*data_counter)) + data_counter + 1;
+    uint32_t shifting_mem = byte;
 
     if(shift >= 0)
-        data32 |= byte << shift;
+        data32 |= shifting_mem << shift;
     else
-        data32 |= byte >> -shift;
+        data32 |= shifting_mem >> -shift;
 
     data_counter++;
 }

@@ -6,14 +6,14 @@
 #define LED_PIN 13
 
 #define STEERING_PIN 5
-#define STEERING_MIN 60
-#define STEERING_MAX 120
-#define STEERING_DEFAULT 90
+#define STEERING_MIN 60.0
+#define STEERING_MAX 120.0
+#define STEERING_DEFAULT 90.0
 
 #define THROTTLE_PIN 6
-#define THROTTLE_MIN 0
-#define THROTTLE_MAX 180
-#define THROTTLE_DEFAULT 90
+#define THROTTLE_MIN 0.0
+#define THROTTLE_MAX 180.0
+#define THROTTLE_DEFAULT 92.0
 
 #define MSG_HEARTBEAT 0
 #define MSG_STEERING  1
@@ -24,7 +24,15 @@ SimpleSerialProtocol com;
 Servo steering;
 Servo throttle;
 
-int hbc = 0;
+unsigned long last_heartbeat;
+int last_time_check;
+
+typedef union
+{
+    uint32_t u;
+    int i;
+    float f;
+} bitfield32;
 //----------------------------------------------------------------------------//
 void failsafe()
 {
@@ -40,7 +48,7 @@ void failsafe()
     }
 }
 //----------------------------------------------------------------------------//
-int range(int value, int min, int max)
+float range(float value, float min, float max)
 {
     if(value < min)
         return min;
@@ -61,6 +69,19 @@ void setup()
 
     throttle.attach(THROTTLE_PIN);
     throttle.write(THROTTLE_DEFAULT);
+
+    //wait for first heartbeat to arm system
+    bool armed = false;
+    while(!armed)
+    {
+        if(com.refresh() && com.get_type() == MSG_HEARTBEAT)
+        {
+                digitalWrite(LED_PIN, HIGH);
+                last_heartbeat = millis();
+                armed = true;
+                last_time_check = 0;
+        }
+    }
 }
 //----------------------------------------------------------------------------//
 void loop()
@@ -70,23 +91,37 @@ void loop()
         switch(com.get_type())
         {
             case MSG_HEARTBEAT:
-                hbc = 0;
+                last_heartbeat = millis();
                 break;
             case MSG_STEERING:
                 if(com.has_data())
-                    steering.write(range(com.get_data(), STEERING_MIN, STEERING_MAX));
+                {
+                    bitfield32 value;
+                    value.u = com.get_data();
+                    steering.write(range(value.f, STEERING_MIN, STEERING_MAX));
+                }
                 break;
             case MSG_THROTTLE:
-                if(com.has_data())
-                    throttle.write(range(com.get_data(), THROTTLE_MIN, THROTTLE_MAX));
+                {
+                    bitfield32 value;
+                    value.u = com.get_data();
+                    throttle.write(range(value.f, THROTTLE_MIN, THROTTLE_MAX));
+                }
                 break;
         }
     }
 
-    if(hbc > 500)
-        failsafe();
-
-    //delay(10);
-    //hbc++;
+    if(last_time_check >= 10)
+    {
+        last_time_check = 0;
+        if(millis()-last_heartbeat > 200)
+        {
+            failsafe();
+        }
+    }
+    else
+    {
+        last_time_check++;
+    }
 }
 //----------------------------------------------------------------------------//

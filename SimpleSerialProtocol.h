@@ -17,7 +17,7 @@ public:
     bool refresh();
     uint8_t get_type();
     bool has_data();
-    int get_data();
+    uint32_t get_data();
 
 private:
     uint8_t state;
