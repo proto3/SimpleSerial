@@ -3,7 +3,8 @@
 
 #define BAUDRATE 115200
 
-#define LED_PIN 13
+#define RC_LED_PIN 3
+#define PC_LED_PIN 11
 
 #define STEERING_PIN 5
 #define STEERING_MIN 60.0
@@ -11,8 +12,8 @@
 #define STEERING_DEFAULT 90.0
 
 #define THROTTLE_PIN 6
-#define THROTTLE_MIN 0.0
-#define THROTTLE_MAX 180.0
+#define THROTTLE_MIN 87.0
+#define THROTTLE_MAX 96.0
 #define THROTTLE_DEFAULT 92.0
 
 #define MSG_HEARTBEAT 0
@@ -21,8 +22,7 @@
 
 SimpleSerialProtocol com;
 
-Servo steering;
-Servo throttle;
+Servo steering, throttle;
 
 unsigned long last_heartbeat;
 int last_time_check;
@@ -42,9 +42,11 @@ void failsafe()
     while(true)
     {
         delay(100);
-        digitalWrite(LED_PIN, HIGH);
+        digitalWrite(RC_LED_PIN, HIGH);
+        digitalWrite(PC_LED_PIN, HIGH);
         delay(100);
-        digitalWrite(LED_PIN, LOW);
+        digitalWrite(RC_LED_PIN, LOW);
+        digitalWrite(PC_LED_PIN, LOW);
     }
 }
 //----------------------------------------------------------------------------//
@@ -62,7 +64,8 @@ void setup()
     Serial1.begin(BAUDRATE);
     while(!Serial1){;}
 
-    pinMode(LED_PIN, OUTPUT);
+    pinMode(RC_LED_PIN, OUTPUT);
+    pinMode(PC_LED_PIN, OUTPUT);
 
     steering.attach(STEERING_PIN);
     steering.write(STEERING_DEFAULT);
@@ -76,7 +79,6 @@ void setup()
     {
         if(com.refresh() && com.get_type() == MSG_HEARTBEAT)
         {
-                digitalWrite(LED_PIN, HIGH);
                 last_heartbeat = millis();
                 armed = true;
                 last_time_check = 0;
@@ -110,6 +112,12 @@ void loop()
                 break;
         }
     }
+
+	//GET STATE
+
+	//DISPLAY STATE
+
+	//SWITCH PWM SOURCE
 
     if(last_time_check >= 10)
     {
