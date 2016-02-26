@@ -5,6 +5,7 @@
 
 #define RC_LED_PIN 3
 #define PC_LED_PIN 11
+#define SRC_SWITCH_PIN 2
 
 #define STEERING_PIN 5
 #define STEERING_MIN 60.0
@@ -15,6 +16,13 @@
 #define THROTTLE_MIN 87.0
 #define THROTTLE_MAX 96.0
 #define THROTTLE_DEFAULT 92.0
+
+#define CH3_PIN 10
+#define CH3_MIN 0.0
+#define CH3_MAX 180.0
+#define CH3_DEFAULT 90.0
+
+#define CH3_IN_PIN 9
 
 #define MSG_HEARTBEAT 0
 #define MSG_STEERING  1
@@ -33,6 +41,10 @@ typedef union
     int i;
     float f;
 } bitfield32;
+
+
+float x = 0.0;
+int i = 0;
 //----------------------------------------------------------------------------//
 void failsafe()
 {
@@ -66,7 +78,11 @@ void setup()
 
     pinMode(RC_LED_PIN, OUTPUT);
     pinMode(PC_LED_PIN, OUTPUT);
+    pinMode(SRC_SWITCH_PIN, OUTPUT);
+    pinMode(CH3_PIN, OUTPUT);
 
+    pinMode(CH3_IN_PIN, INPUT);
+    
     steering.attach(STEERING_PIN);
     steering.write(STEERING_DEFAULT);
 
@@ -88,6 +104,29 @@ void setup()
 //----------------------------------------------------------------------------//
 void loop()
 {
+    /*digitalWrite(STEERING_PIN, LOW);
+    digitalWrite(THROTTLE_PIN, LOW);
+    digitalWrite(CH3_PIN, LOW);*/
+  
+    /*if(i%200 >= 100)
+    {
+      digitalWrite(13, LOW);
+      digitalWrite(SRC_SWITCH_PIN, LOW);
+    }
+    else
+    {
+      digitalWrite(13, HIGH);
+      digitalWrite(SRC_SWITCH_PIN, HIGH);
+    }
+
+    x += 0.1;
+    i++;
+    //steering.write(sin(x)*20 + 20);
+    //throttle.write(sin(x)*20 + 20);
+    delay(20);
+
+    return;*/
+  
     if(com.refresh())
     {
         switch(com.get_type())
